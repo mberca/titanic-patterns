@@ -1,0 +1,26 @@
+{
+  "age_median": 28.0,
+  "fare_median": 14.4542,
+  "embarked_mode": "S",
+  "means": {
+    "age_z": 29.283356741573034,
+    "log_fare_z": 2.944712429873126,
+    "family_size_z": 1.8679775280898876
+  },
+  "scales": {
+    "age_z": 12.856157077151309,
+    "log_fare_z": 0.9801675432154588,
+    "family_size_z": 1.6111382212552032
+  },
+  "features": [
+    "age_z",
+    "log_fare_z",
+    "family_size_z",
+    "age_missing",
+    "sex_male",
+    "class_2",
+    "class_3",
+    "embarked_Q",
+    "embarked_S"
+  ]
+}

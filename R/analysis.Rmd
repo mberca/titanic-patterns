@@ -1,0 +1,209 @@
+---
+title: "Titanic patterns: an R-first historical analysis"
+output:
+  github_document:
+    toc: true
+    html_preview: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      error = FALSE, fig.width = 9, fig.height = 5)
+if (!file.exists("METHODOLOGY.md")) {
+  if (file.exists("../METHODOLOGY.md")) {
+    knitr::opts_knit$set(root.dir = normalizePath(".."))
+  } else stop("Knit from the repository root or R directory.")
+}
+```
+
+```{r load}
+source("R/analysis.R")
+inputs <- load_inputs(".")
+d <- inputs$data
+s <- inputs$split
+out <- file.path("outputs", "r")
+if (!file.exists(file.path(out, "metrics.csv"))) {
+  run_analysis(".")
+}
+metrics <- read.csv(file.path(out, "metrics.csv"))
+rates <- read.csv(file.path(out, "bayesian_rates.csv"))
+rules <- read.csv(file.path(out, "rules.csv"))
+coefficients <- read.csv(file.path(out, "coefficients.csv"))
+```
+
+## 1. A selected historical sample, not a complete manifest
+
+The analysis uses **`r nrow(d)` labeled passenger records** from the pinned,
+CC0-declared public source described in the root documentation. They are not
+the entire Titanic manifest or a random sample of a modern population.
+Names, ticket strings, and cabins are not predictors or rule items. Group
+identifiers preserve shared tickets across the committed split but do not
+perfectly identify families or social groups.
+
+```{r coverage}
+knitr::kable(data.frame(
+  subset = c("Training", "Held-out test"),
+  n = c(sum(s$subset == "train"), sum(s$subset == "test")),
+  survived = c(sum(d$Survived[s$subset == "train"]),
+               sum(d$Survived[s$subset == "test"]))),
+  caption = "The split is committed once and shared by both languages.")
+knitr::kable(read.csv(file.path(out, "missingness.csv")), digits = 3,
+             caption = "Missing fractions refer to all 891 labeled records.")
+```
+
+![Sample overview](overview.png)
+
+Recorded sex and passenger class have visibly different observed survival
+proportions in this selected sample. These are descriptions of historical
+records, not explanations of why a person survived, causal effects, or a
+basis for discriminatory decisions.
+
+## 2. Predictive comparison: fit locally, assess on unseen groups
+
+The three prespecified models are a training-prevalence baseline, a
+500-tree random forest (`mtry=3`, `nodesize=5`), and regularized Bayesian
+logistic regression. The seed is `20261014`. Each of five training validation
+folds refits its own medians, embarkation mode, and sample-standard-deviation
+scales. The final models fit on all 712 training rows and transform the same
+179 test rows without refitting preprocessing.
+
+The ordered inputs are `r paste(FEATURES, collapse = ", ")`. Age and fare
+use training medians; missing embarkation uses the alphabetical-first training
+mode in a tie. Fare is transformed with `log1p`; family size is
+`SibSp + Parch + 1`. Numeric covariates are centered and scaled with training
+sample SD; zero SD is replaced by one.
+
+```{r development}
+cv <- metrics[metrics$phase == "cv", ]
+cv_summary <- aggregate(cbind(roc_auc, brier, log_loss, balanced_accuracy) ~ model,
+                        cv, mean)
+knitr::kable(cv_summary, digits = 4,
+             caption = "Unweighted mean of the five validation-fold scores (development only).")
+```
+
+These means describe the particular committed folds, not five independent
+experiments or a confidence interval. No hyperparameters are selected from
+the held-out scores.
+
+```{r heldout}
+test_scores <- metrics[metrics$phase == "test", ]
+knitr::kable(test_scores[c("model", "roc_auc", "brier", "log_loss",
+                           "balanced_accuracy", "n")], digits = 4,
+             caption = "Held-out performance, reported once without test-driven tuning.")
+```
+
+In this particular holdout, the forest's Brier score is
+**`r sprintf("%.3f", test_scores$brier[test_scores$model == "Random forest"])`**,
+compared with **`r sprintf("%.3f", test_scores$brier[test_scores$model == "Prevalence baseline"])`**
+for the constant baseline and
+**`r sprintf("%.3f", test_scores$brier[test_scores$model == "Bayesian logistic"])`**
+for the Bayesian plug-in model. Thus, the modeled historical characteristics
+carry predictive information in this partition; that finding does not explain
+survival mechanisms or certify performance on another population.
+
+Higher ROC AUC and balanced accuracy are better; lower Brier score and log
+loss are better. Balanced accuracy uses a fixed probability threshold of
+**at least 0.5**. ROC calculations always use survival as the positive event
+and a fixed direction; no automatic direction selection is permitted.
+
+![Validation and test comparison](performance.png)
+
+![Held-out ROC curves](roc.png)
+
+![Reliability and bin counts](calibration.png)
+
+The test set contains only 179 records. Scores and small-bin reliability
+estimates can move with another sample or grouped partition. These figures
+do not establish a statistically significant gain or a universally best
+algorithm. R and Python forests need not agree: their fitting algorithms
+and probability definitions differ even with matched settings.
+
+## 3. Bayesian logistic regression: approximate uncertainty, explicit prediction
+
+The intercept has a zero-centered Normal prior with SD 5; all other
+coefficients have independent zero-centered Normal priors with SD 2.5.
+Analytic-gradient BFGS, followed by analytic Newton polishing, finds the
+posterior mode with explicit convergence and gradient checks.
+The inverse analytic negative-log-posterior Hessian
+provides a **Laplace approximation** to the coefficient covariance.
+
+```{r coefficients}
+knitr::kable(coefficients, digits = 4,
+             caption = "Posterior modes and approximate marginal 95% credible intervals.")
+```
+
+![Approximate Bayesian associations](bayesian_effects.png)
+
+The odds ratios are conditional model associations. Numeric coefficients
+represent one training sample SD; binary coefficients use female, first
+class, and embarkation at C as references. The missing-age flag is included.
+Marginal intervals do not capture every model, selection, or historical
+measurement uncertainty. These are not frequentist confidence intervals.
+
+All reported Bayesian predictive scores use **posterior-mode plug-in
+probabilities**. They are not integrated posterior predictive probabilities.
+This is neither MCMC nor an exact posterior analysis.
+
+## 4. Exploratory association rules: count first, then interpret
+
+Only the 712 training records are transactions. Survival is confined to
+one consequent item, never an antecedent. Antecedents use at most two items
+from recorded sex, class, raw age category, family category, or raw fare
+category. Missing ages/fares become `Unknown`, not imputed values. The
+fixed filters are support at least 0.04, confidence at least 0.60,
+joint count at least 20, lift at least 1.0, and total rule length 2–3.
+
+```{r rules}
+knitr::kable(head(rules, 10), digits = 3,
+             caption = paste(nrow(rules), "retained exploratory rules; complete export in rules.csv."))
+```
+
+The leading retained pattern is **`r rules$antecedent[1]`**
+with consequent **`r rules$consequent[1]`**. It covers
+**`r rules$count[1]` joint records** among **`r rules$antecedent_count[1]`**
+matching antecedents, rather than a large lift derived from a hidden tiny
+denominator. Its confidence is **`r sprintf("%.1f%%", 100 * rules$confidence[1])`**,
+compared with a consequent baseline of
+**`r sprintf("%.1f%%", 100 * rules$baseline[1])`** in training.
+
+![Training-only rules](rules.png)
+
+Support is joint count divided by the true training N. Confidence is joint
+count divided by antecedent count; lift divides confidence by that rule's
+consequent prevalence. Rules for non-survival therefore have a different
+baseline from survival rules. Repeated and overlapping patterns are expected.
+The thresholds are discovery filters, not significance tests. These
+training-only exhibits are not validated predictions or causal discoveries.
+
+## 5. A separate Bayesian question: describe sex-by-class rates
+
+For this section **all 891 labeled records** describe six historical strata.
+A Beta(1,1) prior and `s` survivors among `n` records yield
+Beta(`s+1`, `n-s+1`). The table reports the exact conjugate posterior mean
+and central 95% beta credible interval. This separate descriptive
+calculation does not enter model fitting, preprocessing, rule mining,
+or held-out performance.
+
+```{r rates}
+knitr::kable(rates, digits = 4,
+             caption = "Full-sample descriptive posterior; group counts remain visible.")
+```
+
+![Descriptive Bayesian rates](bayesian_rates.png)
+
+Large differences in these observed records do not identify mechanisms.
+The posterior intervals are conditional on the binomial model and prior,
+not a correction for missing records, selection, dependence, or confounding.
+
+## Reproduce and inspect
+
+From the repository root, run `source("R/run_analysis.R")`, then
+`source("R/test-analysis.R")`. See `R/README.md` for rendering commands.
+CSV files retain high precision; `preprocessing.json` records the final
+training transform. `session-info.txt` records package versions and the
+maximum final MAP gradient. No real-passenger simulator or rescue advice
+is included.
+
+```{r session}
+sessionInfo()
+```

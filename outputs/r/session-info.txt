@@ -1,0 +1,37 @@
+R version 4.4.3 (2025-02-28 ucrt)
+Platform: x86_64-w64-mingw32/x64
+Running under: Windows 11 x64 (build 26310)
+
+Matrix products: default
+
+
+locale:
+[1] LC_COLLATE=English_Ireland.utf8  LC_CTYPE=English_Ireland.utf8   
+[3] LC_MONETARY=English_Ireland.utf8 LC_NUMERIC=C                    
+[5] LC_TIME=English_Ireland.utf8    
+
+time zone: Europe/Dublin
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] ggplot2_3.5.2
+
+loaded via a namespace (and not attached):
+ [1] vctrs_0.6.5          cli_3.6.5            rlang_1.1.7         
+ [4] generics_0.1.3       arules_1.7-10        textshaping_0.4.0   
+ [7] jsonlite_1.8.8       labeling_0.4.3       glue_1.8.0          
+[10] colorspace_2.1-0     plyr_1.8.9           ragg_1.3.2          
+[13] scales_1.3.0         fansi_1.0.6          grid_4.4.3          
+[16] munsell_0.5.1        tibble_3.2.1         lifecycle_1.0.4     
+[19] compiler_4.4.3       dplyr_1.1.4          Rcpp_1.0.12         
+[22] pkgconfig_2.0.3      farver_2.1.2         systemfonts_1.1.0   
+[25] lattice_0.22-6       R6_2.5.1             tidyselect_1.2.1    
+[28] utf8_1.2.4           pROC_1.18.5          pillar_1.9.0        
+[31] magrittr_2.0.3       Matrix_1.7-2         tools_4.4.3         
+[34] withr_3.0.0          gtable_0.3.5         randomForest_4.7-1.2
+Seed: 20261014
+Final MAP maximum absolute gradient: 1.3700152123874432e-13
+Prediction: posterior-mode plug-in; covariance: inverse analytic Hessian.

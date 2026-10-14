@@ -1,0 +1,34 @@
+{
+  "source_url": "https://raw.githubusercontent.com/paulhendricks/titanic/53be2fd391100044594de004d559858077a10c43/inst/data-raw/train.csv",
+  "source_revision": "53be2fd391100044594de004d559858077a10c43",
+  "source_sha256": "7d118fef8b6ccf7f81111877bc388536f7b1e498a655e3d649d19aaa010e9f6f",
+  "source_package_license": "CC0",
+  "license_declaration": "https://github.com/paulhendricks/titanic/blob/53be2fd391100044594de004d559858077a10c43/DESCRIPTION",
+  "upstream_context": "https://www.kaggle.com/competitions/titanic",
+  "rows": 891,
+  "survived": 342,
+  "split_seed": 20261014,
+  "split_method": "StratifiedGroupKFold; first outer fold held out",
+  "grouping": "Shared ticket strings, replaced by invented group identifiers",
+  "train_rows": 712,
+  "test_rows": 179,
+  "train_survived": 273,
+  "test_survived": 69,
+  "retained_columns": [
+    "PassengerId",
+    "Survived",
+    "Pclass",
+    "Sex",
+    "Age",
+    "SibSp",
+    "Parch",
+    "Fare",
+    "Embarked"
+  ],
+  "excluded_at_ingest": [
+    "Name",
+    "Ticket",
+    "Cabin"
+  ],
+  "scope": "891 labeled historical passenger records, not the full ship manifest"
+}
