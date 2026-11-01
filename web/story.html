@@ -112,6 +112,9 @@ h1 span { color: var(--cp-accent); }
 .strip strong { display: block; font-size: 29px; letter-spacing: -.04em; font-weight: 600; }
 .strip span { font-size: 12px; color: var(--cp-text-muted); } .strip label { font-size: 12px; display: block; margin-bottom: 4px; }
 .strip select { width: 100%; }
+.context-intro { max-width: 960px; padding-bottom: 36px; }
+.context-intro h2 { font-size: 19px; line-height: 1.3; letter-spacing: -.025em; margin: 0 0 12px; }
+.context-intro p { margin: 0; }
 .chapter { padding: 12px 0 40px; scroll-margin-top: 20px; }
 .chapter-head { display: grid; grid-template-columns: .8fr 1.2fr; gap: 48px; align-items: end; margin-bottom: 24px; }
 h2 { font-size: clamp(29px, 3.1vw, 43px); line-height: 1.12; letter-spacing: -.045em; margin: 12px 0 8px; font-weight: 650; }
@@ -191,6 +194,10 @@ footer { display: flex; justify-content: space-between; gap: 24px; border-top: 1
 <section class="strip" aria-label="Dataset and implementation">
   <div><strong>891</strong><span>labeled historical records</span></div><div><strong>712</strong><span>training rows / grouped CV</span></div><div><strong>179</strong><span>held-out test rows</span></div>
   <div><label for="language">Explore the implementation</label><select id="language"><option value="R">R / randomForest + arules</option><option value="Python">Python / scikit-learn + mlxtend</option></select></div>
+</section>
+<section class="context-intro" id="people-analytics-bridge" aria-labelledby="people-analytics-title">
+  <h2 id="people-analytics-title">Why this belongs in a People Analytics portfolio</h2>
+  <p>People Analytics requires more than finding patterns: it requires understanding what a measure represents, choosing a fair comparison, and knowing what the evidence cannot establish. This historical case study exercises those same habits through descriptive comparisons, predictive models and explicit uncertainty. The setting is different; the discipline of asking careful questions is transferable. It is not a model of employee behaviour or guidance for workplace decisions.</p>
 </section>
 <section class="chapter" id="patterns">
   <div class="chapter-head"><div><div class="chapter-number">01 / Describe before predicting</div><h2>A rate needs<br>a denominator.</h2></div><p>Group averages can conceal both differences and uncertainty. These are sex-by-class summaries of the <strong>observed 891-row sample</strong>, separate from model evaluation. Every dot has a count and a Bayesian interval.</p></div>

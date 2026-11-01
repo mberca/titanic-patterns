@@ -106,3 +106,30 @@ class VoyageTests(unittest.TestCase):
         self.assertNotEqual(hull.evaluate("el => getComputedStyle(el).fill"), original)
         page.select_option("#language", "Python")
         self.assertIn("Python", page.locator("#model-language").inner_text())
+
+    def test_people_analytics_context_is_readable_before_the_first_chart(self):
+        for width in (320, 390, 1600):
+            with self.subTest(width=width):
+                page = self.open_story(width, "reduce")
+                bridge = page.locator("#people-analytics-bridge")
+                bridge.scroll_into_view_if_needed()
+                self.assertTrue(bridge.is_visible())
+                self.assertEqual(
+                    page.locator("#people-analytics-title").evaluate(
+                        "el => el.tagName"
+                    ),
+                    "H2",
+                )
+                self.assertIn(
+                    "not a model of employee behaviour or guidance for workplace decisions",
+                    bridge.inner_text(),
+                )
+                bounds = bridge.bounding_box()
+                chart = page.locator("#rates").bounding_box()
+                self.assertLess(bounds["y"] + bounds["height"], chart["y"])
+                self.assertGreaterEqual(bounds["x"], 0)
+                self.assertLessEqual(bounds["x"] + bounds["width"], width)
+                self.assertFalse(
+                    page.evaluate("document.documentElement.scrollWidth > innerWidth")
+                )
+                page.close()
