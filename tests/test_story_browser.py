@@ -107,7 +107,7 @@ class VoyageTests(unittest.TestCase):
         page.select_option("#language", "Python")
         self.assertIn("Python", page.locator("#model-language").inner_text())
 
-    def test_people_analytics_context_is_readable_before_the_first_chart(self):
+    def test_research_context_is_readable_before_the_first_chart(self):
         for width in (320, 390, 1600):
             with self.subTest(width=width):
                 page = self.open_story(width, "reduce")
@@ -121,9 +121,14 @@ class VoyageTests(unittest.TestCase):
                     "H2",
                 )
                 self.assertIn(
-                    "not a model of employee behaviour or guidance for workplace decisions",
+                    "the findings remain specific to this incomplete historical sample",
                     bridge.inner_text(),
                 )
+                self.assertEqual(
+                    page.locator("#people-analytics-title").inner_text(),
+                    "What transfers beyond this dataset",
+                )
+                self.assertNotIn("People Analytics portfolio", bridge.inner_text())
                 bounds = bridge.bounding_box()
                 chart = page.locator("#rates").bounding_box()
                 self.assertLess(bounds["y"] + bounds["height"], chart["y"])
